@@ -394,8 +394,8 @@ function ESLib:CreateWindow(config)
         return b
     end
 
-    local closeBtn = makeCtrl(-10, "X", T.error)
-    local minBtn   = makeCtrl(-42, "-", T.accentDark)
+    local closeBtn = makeCtrl(-36, "X", T.error)
+    local minBtn   = makeCtrl(-68, "-", T.accentDark)
 
     -- ── Sidebar ───────────────────────────────────────
     local sidebar = newFrame({
@@ -451,10 +451,10 @@ function ESLib:CreateWindow(config)
         Parent           = win,
     })
 
-    -- ── Drag (header) ─────────────────────────────────
+    -- ── Drag (full window, screen-clamped) ───────────────────────────
     do
         local dragging, dragInput, dragStart, startWin, startShadow
-        header.InputBegan:Connect(function(input)
+        win.InputBegan:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.MouseButton1 then
                 dragging    = true
                 dragStart   = input.Position
@@ -465,14 +465,17 @@ function ESLib:CreateWindow(config)
                 end)
             end
         end)
-        header.InputChanged:Connect(function(input)
+        win.InputChanged:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.MouseMovement then dragInput = input end
         end)
         UIS.InputChanged:Connect(function(input)
             if input == dragInput and dragging then
-                local d = input.Position - dragStart
-                win.Position    = UDim2.new(startWin.X.Scale,    startWin.X.Offset    + d.X, startWin.Y.Scale,    startWin.Y.Offset    + d.Y)
-                shadow.Position = UDim2.new(startShadow.X.Scale, startShadow.X.Offset + d.X, startShadow.Y.Scale, startShadow.Y.Offset + d.Y)
+                local d   = input.Position - dragStart
+                local vp  = game:GetService("Workspace").CurrentCamera.ViewportSize
+                local newX = math.clamp(startWin.X.Offset + d.X, WIN_W / 2 - vp.X / 2, vp.X / 2 - WIN_W / 2)
+                local newY = math.clamp(startWin.Y.Offset + d.Y, WIN_H / 2 - vp.Y / 2, vp.Y / 2 - WIN_H / 2)
+                win.Position    = UDim2.new(startWin.X.Scale,    newX,     startWin.Y.Scale,    newY)
+                shadow.Position = UDim2.new(startShadow.X.Scale, newX + 3, startShadow.Y.Scale, newY + 5)
             end
         end)
     end

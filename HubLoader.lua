@@ -87,6 +87,38 @@ end
 -- Executor-compatible HTTP request (works across Synapse, KRNL, Fluxus, etc.)
 local httpRequest = (syn and syn.request) or (http and http.request) or request or http_request
 
+-- ══════════════════════════════════════════════════════
+--  KEY PERSISTENCE  (save / load from executor filesystem)
+-- ══════════════════════════════════════════════════════
+
+local KEY_FOLDER = "ExtremeSolutions"
+local KEY_FILE   = KEY_FOLDER .. "/savedkey.txt"
+
+local function saveKey(key)
+    pcall(function()
+        if not isfolder(KEY_FOLDER) then makefolder(KEY_FOLDER) end
+        writefile(KEY_FILE, key)
+    end)
+end
+
+local function loadSavedKey()
+    local ok, result = pcall(function()
+        if isfolder(KEY_FOLDER) and isfile(KEY_FILE) then
+            return readfile(KEY_FILE)
+        end
+    end)
+    if ok and type(result) == "string" and result ~= "" then
+        return result:match("^%s*(.-)%s*$")  -- trim whitespace
+    end
+    return nil
+end
+
+local function clearSavedKey()
+    pcall(function()
+        if isfile(KEY_FILE) then writefile(KEY_FILE, "") end
+    end)
+end
+
 local function validateKey(key)
     -- 1. Check offline whitelist first (instant, no HTTP)
     if isOfflineKey(key) then
@@ -244,47 +276,77 @@ accentBar.BorderSizePixel  = 0
 accentBar.ZIndex           = 3
 accentBar.Parent           = panel
 
--- Logo / title
+-- Header background strip (matches ESLib sidebar colour)
+local headerBg = Instance.new("Frame")
+headerBg.Size             = UDim2.new(1, 0, 0, 78)
+headerBg.Position         = UDim2.new(0, 0, 0, 4)   -- sits just below accent bar
+headerBg.BackgroundColor3 = Color3.fromRGB(13, 13, 21)
+headerBg.BorderSizePixel  = 0
+headerBg.ZIndex           = 2
+headerBg.Parent           = panel
+
+-- ES badge (purple square with "ES" text, top-left of header)
+local esBadge = Instance.new("Frame")
+esBadge.Size             = UDim2.new(0, 28, 0, 28)
+esBadge.Position         = UDim2.new(0, 18, 0, 24)
+esBadge.BackgroundColor3 = COLORS.accent
+esBadge.BorderSizePixel  = 0
+esBadge.ZIndex           = 4
+esBadge.Parent           = panel
+makeCorner(esBadge, 7)
+local esBadgeLbl = Instance.new("TextLabel")
+esBadgeLbl.Size                   = UDim2.new(1, 0, 1, 0)
+esBadgeLbl.BackgroundTransparency = 1
+esBadgeLbl.TextColor3             = COLORS.white
+esBadgeLbl.TextSize               = 11
+esBadgeLbl.Font                   = Enum.Font.GothamBold
+esBadgeLbl.TextXAlignment         = Enum.TextXAlignment.Center
+esBadgeLbl.TextYAlignment         = Enum.TextYAlignment.Center
+esBadgeLbl.Text                   = "ES"
+esBadgeLbl.ZIndex                 = 5
+esBadgeLbl.Parent                 = esBadge
+
+-- Logo / title (shifted right of badge)
 local logoLabel = Instance.new("TextLabel")
-logoLabel.Size                   = UDim2.new(1, -40, 0, 32)
-logoLabel.Position               = UDim2.new(0, 20, 0, 22)
+logoLabel.Size                   = UDim2.new(1, -120, 0, 28)
+logoLabel.Position               = UDim2.new(0, 54, 0, 24)
 logoLabel.BackgroundTransparency = 1
 logoLabel.TextColor3             = COLORS.white
-logoLabel.TextSize               = 20
+logoLabel.TextSize               = 17
 logoLabel.Font                   = Enum.Font.GothamBold
 logoLabel.TextXAlignment         = Enum.TextXAlignment.Left
 logoLabel.Text                   = "Extreme Solutions"
-logoLabel.ZIndex                 = 3
+logoLabel.ZIndex                 = 4
 logoLabel.Parent                 = panel
 
 local versionLabel = Instance.new("TextLabel")
-versionLabel.Size                   = UDim2.new(0, 60, 0, 32)
-versionLabel.Position               = UDim2.new(1, -80, 0, 22)
+versionLabel.Size                   = UDim2.new(0, 55, 0, 28)
+versionLabel.Position               = UDim2.new(0, 308, 0, 24)
 versionLabel.BackgroundTransparency = 1
 versionLabel.TextColor3             = COLORS.textDim
-versionLabel.TextSize               = 13
+versionLabel.TextSize               = 12
 versionLabel.Font                   = Enum.Font.Gotham
 versionLabel.TextXAlignment         = Enum.TextXAlignment.Right
 versionLabel.Text                   = CONFIG.Version
-versionLabel.ZIndex                 = 3
+versionLabel.ZIndex                 = 4
 versionLabel.Parent                 = panel
 
 local subLabel = Instance.new("TextLabel")
-subLabel.Size                   = UDim2.new(1, -40, 0, 20)
-subLabel.Position               = UDim2.new(0, 20, 0, 52)
+subLabel.Size                   = UDim2.new(1, -40, 0, 18)
+subLabel.Position               = UDim2.new(0, 54, 0, 50)
 subLabel.BackgroundTransparency = 1
 subLabel.TextColor3             = COLORS.textDim
-subLabel.TextSize               = 13
+subLabel.TextSize               = 12
 subLabel.Font                   = Enum.Font.Gotham
 subLabel.TextXAlignment         = Enum.TextXAlignment.Left
 subLabel.Text                   = "Script Hub  ·  Key Required"
-subLabel.ZIndex                 = 3
+subLabel.ZIndex                 = 4
 subLabel.Parent                 = panel
 
--- Divider
+-- Divider (sits at bottom of header strip)
 local divider = Instance.new("Frame")
-divider.Size             = UDim2.new(1, -40, 0, 1)
-divider.Position         = UDim2.new(0, 20, 0, 82)
+divider.Size             = UDim2.new(1, 0, 0, 1)
+divider.Position         = UDim2.new(0, 0, 0, 82)
 divider.BackgroundColor3 = COLORS.border
 divider.BorderSizePixel  = 0
 divider.ZIndex           = 3
@@ -393,10 +455,10 @@ discordBtn.Parent           = panel
 makeCorner(discordBtn, 6)
 makeStroke(discordBtn, COLORS.border, 1)
 
--- Close button (X) top-right
+-- Close button (X) top-right — positioned fully inside the panel
 local closeBtn = Instance.new("TextButton")
 closeBtn.Size             = UDim2.new(0, 28, 0, 28)
-closeBtn.Position         = UDim2.new(1, -46, 0, 16)
+closeBtn.Position         = UDim2.new(0, 374, 0, 27)
 closeBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 55)
 closeBtn.TextColor3       = COLORS.textDim
 closeBtn.TextSize         = 14
@@ -420,13 +482,7 @@ closeBtn.MouseButton1Click:Connect(function()
     screenGui:Destroy()
 end)
 
--- Drag handle (transparent frame covering the header area)
-local dragHandle = Instance.new("Frame")
-dragHandle.Size             = UDim2.new(1, -60, 0, 75)  -- full width minus close btn, header height
-dragHandle.Position         = UDim2.new(0, 0, 0, 0)
-dragHandle.BackgroundTransparency = 1
-dragHandle.ZIndex           = 4
-dragHandle.Parent           = panel
+-- (dragging is handled directly on the panel below)
 
 -- ══════════════════════════════════════════════════════
 --  PANEL ENTRANCE ANIMATION
@@ -445,7 +501,9 @@ end)
 local UserInputService = game:GetService("UserInputService")
 local dragging, dragInput, dragStart, startPos
 
-dragHandle.InputBegan:Connect(function(input)
+local PANEL_W, PANEL_H = 420, 360
+
+panel.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 then
         dragging  = true
         dragStart = input.Position
@@ -458,7 +516,7 @@ dragHandle.InputBegan:Connect(function(input)
     end
 end)
 
-dragHandle.InputChanged:Connect(function(input)
+panel.InputChanged:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseMovement then
         dragInput = input
     end
@@ -467,10 +525,10 @@ end)
 UserInputService.InputChanged:Connect(function(input)
     if input == dragInput and dragging then
         local delta = input.Position - dragStart
-        panel.Position = UDim2.new(
-            startPos.X.Scale, startPos.X.Offset + delta.X,
-            startPos.Y.Scale, startPos.Y.Offset + delta.Y
-        )
+        local vp    = game:GetService("Workspace").CurrentCamera.ViewportSize
+        local newX  = math.clamp(startPos.X.Offset + delta.X, PANEL_W / 2 - vp.X / 2, vp.X / 2 - PANEL_W / 2)
+        local newY  = math.clamp(startPos.Y.Offset + delta.Y, PANEL_H / 2 - vp.Y / 2, vp.Y / 2 - PANEL_H / 2)
+        panel.Position = UDim2.new(startPos.X.Scale, newX, startPos.Y.Scale, newY)
     end
 end)
 
@@ -561,7 +619,8 @@ local function onValidate()
         local valid, message = validateKey(key)
 
         if valid then
-            -- Success
+            -- Success — persist the key so the user isn't prompted next time
+            saveKey(key)
             statusLabel.TextColor3 = COLORS.success
             statusLabel.Text       = "Key accepted! Loading " .. detectedGameName .. "..."
             validateBtn.Text             = "Loading..."
@@ -581,7 +640,8 @@ local function onValidate()
                 warn("[ES Hub] Script load error: " .. tostring(loadErr))
             end
         else
-            -- Failure
+            -- Failure — clear any saved key so it doesn't auto-retry a bad/revoked key
+            clearSavedKey()
             statusLabel.TextColor3       = COLORS.error
             statusLabel.Text             = message or "Invalid key."
             validateBtn.Text             = "Validate Key"
