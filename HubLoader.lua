@@ -110,7 +110,12 @@ local function validateKey(key)
     end)
 
     if not ok or not result then
-        return false, "Could not reach validation server.\nCheck your connection."
+        return false, "Could not reach server.\n(" .. tostring(result) .. ")"
+    end
+
+    -- Some executors surface HTTP errors as non-200 status codes
+    if result.StatusCode and result.StatusCode ~= 200 then
+        return false, "Server error " .. tostring(result.StatusCode) .. ":\n" .. tostring(result.Body):sub(1, 120)
     end
 
     local parsed, data = pcall(function()
@@ -118,14 +123,14 @@ local function validateKey(key)
     end)
 
     if not parsed then
-        return false, "Unexpected server response."
+        return false, "Bad server response:\n" .. tostring(result.Body):sub(1, 120)
     end
 
     -- Your server returns: { success: true/false, message: "..." }
     if data.success == true then
         return true, data.message or "Key accepted."
     else
-        return false, data.message or "Invalid key. Purchase one at the store."
+        return false, (data.message or data.error or "Invalid key.") .. "\n[Status: " .. tostring(result.StatusCode) .. "]"
     end
 end
 
@@ -360,9 +365,9 @@ validateBtn.ZIndex           = 3
 validateBtn.Parent           = panel
 makeCorner(validateBtn, 8)
 
--- Store link button
+-- Store link button (left half)
 local storeBtn = Instance.new("TextButton")
-storeBtn.Size             = UDim2.new(0.47, 0, 0, 30)
+storeBtn.Size             = UDim2.new(0, 185, 0, 30)
 storeBtn.Position         = UDim2.new(0, 20, 0, 308)
 storeBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 42)
 storeBtn.TextColor3       = COLORS.textDim
@@ -375,11 +380,10 @@ storeBtn.Parent           = panel
 makeCorner(storeBtn, 6)
 makeStroke(storeBtn, COLORS.border, 1)
 
--- Discord link button
+-- Discord link button (right half)
 local discordBtn = Instance.new("TextButton")
-discordBtn.Size             = UDim2.new(0.47, 0, 0, 30)
-discordBtn.Position         = UDim2.new(1, -20 - (420 * 0.47), 0, 308)  -- right-aligned
-discordBtn.Position         = UDim2.new(0.5, 4, 0, 308)
+discordBtn.Size             = UDim2.new(0, 185, 0, 30)
+discordBtn.Position         = UDim2.new(0, 215, 0, 308)
 discordBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 42)
 discordBtn.TextColor3       = COLORS.textDim
 discordBtn.TextSize         = 12
@@ -391,6 +395,41 @@ discordBtn.Parent           = panel
 makeCorner(discordBtn, 6)
 makeStroke(discordBtn, COLORS.border, 1)
 
+-- Close button (X) top-right
+local closeBtn = Instance.new("TextButton")
+closeBtn.Size             = UDim2.new(0, 28, 0, 28)
+closeBtn.Position         = UDim2.new(1, -46, 0, 16)
+closeBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 55)
+closeBtn.TextColor3       = COLORS.textDim
+closeBtn.TextSize         = 14
+closeBtn.Font             = Enum.Font.GothamBold
+closeBtn.Text             = "✕"
+closeBtn.BorderSizePixel  = 0
+closeBtn.ZIndex           = 5
+closeBtn.Parent           = panel
+makeCorner(closeBtn, 6)
+
+closeBtn.MouseEnter:Connect(function()
+    tween(closeBtn, { BackgroundColor3 = Color3.fromRGB(200, 60, 60), TextColor3 = COLORS.white }, 0.15)
+end)
+closeBtn.MouseLeave:Connect(function()
+    tween(closeBtn, { BackgroundColor3 = Color3.fromRGB(40, 40, 55), TextColor3 = COLORS.textDim }, 0.15)
+end)
+closeBtn.MouseButton1Click:Connect(function()
+    tween(panel,   { BackgroundTransparency = 1 }, 0.2)
+    tween(overlay, { BackgroundTransparency = 1 }, 0.25)
+    task.wait(0.3)
+    screenGui:Destroy()
+end)
+
+-- Drag handle (transparent frame covering the header area)
+local dragHandle = Instance.new("Frame")
+dragHandle.Size             = UDim2.new(1, -60, 0, 75)  -- full width minus close btn, header height
+dragHandle.Position         = UDim2.new(0, 0, 0, 0)
+dragHandle.BackgroundTransparency = 1
+dragHandle.ZIndex           = 4
+dragHandle.Parent           = panel
+
 -- ══════════════════════════════════════════════════════
 --  PANEL ENTRANCE ANIMATION
 -- ══════════════════════════════════════════════════════
@@ -399,6 +438,42 @@ panel.Position = UDim2.new(0.5, 0, 0.5, 30)
 panel.BackgroundTransparency = 1
 task.spawn(function()
     tween(panel, { Position = UDim2.new(0.5, 0, 0.5, 0), BackgroundTransparency = 0 }, 0.4)
+end)
+
+-- ══════════════════════════════════════════════════════
+--  DRAGGING
+-- ══════════════════════════════════════════════════════
+
+local UserInputService = game:GetService("UserInputService")
+local dragging, dragInput, dragStart, startPos
+
+dragHandle.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging  = true
+        dragStart = input.Position
+        startPos  = panel.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+dragHandle.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement then
+        dragInput = input
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        local delta = input.Position - dragStart
+        panel.Position = UDim2.new(
+            startPos.X.Scale, startPos.X.Offset + delta.X,
+            startPos.Y.Scale, startPos.Y.Offset + delta.Y
+        )
+    end
 end)
 
 -- ══════════════════════════════════════════════════════
