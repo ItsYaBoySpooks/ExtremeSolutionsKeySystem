@@ -95,6 +95,9 @@ local KEY_FOLDER = "ExtremeSolutions"
 local KEY_FILE   = KEY_FOLDER .. "/savedkey.txt"
 
 local function saveKey(key)
+    -- In-memory (survives script re-runs in same executor session)
+    pcall(function() getgenv().ES_HUB_KEY = key end)
+    -- On-disk (survives executor restarts)
     pcall(function()
         if not isfolder(KEY_FOLDER) then makefolder(KEY_FOLDER) end
         writefile(KEY_FILE, key)
@@ -102,21 +105,22 @@ local function saveKey(key)
 end
 
 local function loadSavedKey()
-    local ok, result = pcall(function()
-        if isfolder(KEY_FOLDER) and isfile(KEY_FILE) then
-            return readfile(KEY_FILE)
-        end
-    end)
+    -- 1. Check in-memory first (fastest, no file I/O)
+    local mem = pcall(function() return getgenv().ES_HUB_KEY end) and getgenv().ES_HUB_KEY
+    if type(mem) == "string" and mem ~= "" then
+        return mem:match("^%s*(.-)%s*$")
+    end
+    -- 2. Fall back to file
+    local ok, result = pcall(readfile, KEY_FILE)
     if ok and type(result) == "string" and result ~= "" then
-        return result:match("^%s*(.-)%s*$")  -- trim whitespace
+        return result:match("^%s*(.-)%s*$")
     end
     return nil
 end
 
 local function clearSavedKey()
-    pcall(function()
-        if isfile(KEY_FILE) then writefile(KEY_FILE, "") end
-    end)
+    pcall(function() getgenv().ES_HUB_KEY = nil end)
+    pcall(function() writefile(KEY_FILE, "") end)
 end
 
 local function validateKey(key)

@@ -296,7 +296,7 @@ function ESLib:CreateWindow(config)
         ZIndex                 = 1,
         Parent                 = gui,
     })
-    corner(shadow, 16)
+    corner(shadow, 18)
 
     -- ── Main window ───────────────────────────────────
     local win = newFrame({
@@ -308,8 +308,19 @@ function ESLib:CreateWindow(config)
         ZIndex           = 2,
         Parent           = gui,
     })
-    corner(win, 14)
-    stroke(win, T.border, 1.5)
+    corner(win, 16)
+
+    -- ── Border overlay (separate from win so ClipsDescendants doesn't square it) ──
+    local borderOverlay = newFrame({
+        AnchorPoint            = Vector2.new(0.5, 0.5),
+        Position               = UDim2.new(0.5, 0, 0.5, 0),
+        Size                   = UDim2.new(0, WIN_W, 0, WIN_H),
+        BackgroundTransparency = 1,
+        ZIndex                 = 10,
+        Parent                 = gui,
+    })
+    corner(borderOverlay, 16)
+    stroke(borderOverlay, T.border, 1.5)
 
     -- ── Header ───────────────────────────────────────
     local header = newFrame({
@@ -394,8 +405,8 @@ function ESLib:CreateWindow(config)
         return b
     end
 
-    local closeBtn = makeCtrl(-36, "X", T.error)
-    local minBtn   = makeCtrl(-68, "-", T.accentDark)
+    local closeBtn = makeCtrl(-54, "X", T.error)
+    local minBtn   = makeCtrl(-88, "-", T.accentDark)
 
     -- ── Sidebar ───────────────────────────────────────
     local sidebar = newFrame({
@@ -451,10 +462,11 @@ function ESLib:CreateWindow(config)
         Parent           = win,
     })
 
-    -- ── Drag (full window, screen-clamped) ───────────────────────────
+    -- ── Drag (header + sidebar only — prevents sliders triggering window move) ───
     do
         local dragging, dragInput, dragStart, startWin, startShadow
-        win.InputBegan:Connect(function(input)
+
+        local function onDragBegan(input)
             if input.UserInputType == Enum.UserInputType.MouseButton1 then
                 dragging    = true
                 dragStart   = input.Position
@@ -464,18 +476,26 @@ function ESLib:CreateWindow(config)
                     if input.UserInputState == Enum.UserInputState.End then dragging = false end
                 end)
             end
-        end)
-        win.InputChanged:Connect(function(input)
+        end
+        local function onDragMoved(input)
             if input.UserInputType == Enum.UserInputType.MouseMovement then dragInput = input end
-        end)
+        end
+
+        -- Only header and sidebar are drag handles — content area (sliders etc.) is excluded
+        header.InputBegan:Connect(onDragBegan)
+        sidebar.InputBegan:Connect(onDragBegan)
+        header.InputChanged:Connect(onDragMoved)
+        sidebar.InputChanged:Connect(onDragMoved)
+
         UIS.InputChanged:Connect(function(input)
             if input == dragInput and dragging then
-                local d   = input.Position - dragStart
-                local vp  = game:GetService("Workspace").CurrentCamera.ViewportSize
+                local d    = input.Position - dragStart
+                local vp   = game:GetService("Workspace").CurrentCamera.ViewportSize
                 local newX = math.clamp(startWin.X.Offset + d.X, WIN_W / 2 - vp.X / 2, vp.X / 2 - WIN_W / 2)
                 local newY = math.clamp(startWin.Y.Offset + d.Y, WIN_H / 2 - vp.Y / 2, vp.Y / 2 - WIN_H / 2)
-                win.Position    = UDim2.new(startWin.X.Scale,    newX,     startWin.Y.Scale,    newY)
-                shadow.Position = UDim2.new(startShadow.X.Scale, newX + 3, startShadow.Y.Scale, newY + 5)
+                win.Position           = UDim2.new(startWin.X.Scale,    newX,     startWin.Y.Scale,    newY)
+                shadow.Position        = UDim2.new(startShadow.X.Scale, newX + 3, startShadow.Y.Scale, newY + 5)
+                borderOverlay.Position = UDim2.new(startWin.X.Scale,    newX,     startWin.Y.Scale,    newY)
             end
         end)
     end
@@ -485,18 +505,21 @@ function ESLib:CreateWindow(config)
     minBtn.MouseButton1Click:Connect(function()
         minimised = not minimised
         if minimised then
-            tw(win,    { Size = UDim2.new(0, WIN_W, 0, HEADER_H) }, 0.3)
-            tw(shadow, { Size = UDim2.new(0, WIN_W + 14, 0, HEADER_H + 14) }, 0.3)
+            tw(win,           { Size = UDim2.new(0, WIN_W, 0, HEADER_H) }, 0.3)
+            tw(shadow,        { Size = UDim2.new(0, WIN_W + 14, 0, HEADER_H + 14) }, 0.3)
+            tw(borderOverlay, { Size = UDim2.new(0, WIN_W, 0, HEADER_H) }, 0.3)
             minBtn.Text = "+"
         else
-            tw(win,    { Size = UDim2.new(0, WIN_W, 0, WIN_H) }, 0.3, Enum.EasingStyle.Back)
-            tw(shadow, { Size = UDim2.new(0, WIN_W + 14, 0, WIN_H + 14) }, 0.3, Enum.EasingStyle.Back)
+            tw(win,           { Size = UDim2.new(0, WIN_W, 0, WIN_H) }, 0.3, Enum.EasingStyle.Back)
+            tw(shadow,        { Size = UDim2.new(0, WIN_W + 14, 0, WIN_H + 14) }, 0.3, Enum.EasingStyle.Back)
+            tw(borderOverlay, { Size = UDim2.new(0, WIN_W, 0, WIN_H) }, 0.3, Enum.EasingStyle.Back)
             minBtn.Text = "-"
         end
     end)
     closeBtn.MouseButton1Click:Connect(function()
-        tw(win,    { Size = UDim2.new(0, WIN_W, 0, 0), BackgroundTransparency = 1 }, 0.25)
-        tw(shadow, { BackgroundTransparency = 1 }, 0.25)
+        tw(win,           { Size = UDim2.new(0, WIN_W, 0, 0), BackgroundTransparency = 1 }, 0.25)
+        tw(shadow,        { BackgroundTransparency = 1 }, 0.25)
+        tw(borderOverlay, { BackgroundTransparency = 1 }, 0.25)
         task.wait(0.3)
         gui:Destroy()
         notifGui:Destroy()
@@ -516,11 +539,13 @@ function ESLib:CreateWindow(config)
     end
 
     -- ── Entrance animation ────────────────────────────
-    win.Size    = UDim2.new(0, WIN_W, 0, 0)
-    shadow.Size = UDim2.new(0, WIN_W + 14, 0, 0)
+    win.Size           = UDim2.new(0, WIN_W, 0, 0)
+    shadow.Size        = UDim2.new(0, WIN_W + 14, 0, 0)
+    borderOverlay.Size = UDim2.new(0, WIN_W, 0, 0)
     task.spawn(function()
-        tw(win,    { Size = UDim2.new(0, WIN_W, 0, WIN_H) }, 0.45, Enum.EasingStyle.Back)
-        tw(shadow, { Size = UDim2.new(0, WIN_W + 14, 0, WIN_H + 14) }, 0.45, Enum.EasingStyle.Back)
+        tw(win,           { Size = UDim2.new(0, WIN_W, 0, WIN_H) }, 0.45, Enum.EasingStyle.Back)
+        tw(shadow,        { Size = UDim2.new(0, WIN_W + 14, 0, WIN_H + 14) }, 0.45, Enum.EasingStyle.Back)
+        tw(borderOverlay, { Size = UDim2.new(0, WIN_W, 0, WIN_H) }, 0.45, Enum.EasingStyle.Back)
     end)
 
     -- ── Config state ──────────────────────────────────
