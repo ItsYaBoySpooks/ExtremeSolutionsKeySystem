@@ -349,13 +349,14 @@ function ESLib:CreateWindow(config)
     })
 
     -- ES Logo badge
-    -- NOTE: GIFs cannot be used directly in Roblox ImageLabels; the static asset below is used instead.
-    -- For animated logo support in future, a spritesheet + RunService loop approach would be needed.
+    -- ES Logo | Asset: rbxassetid://109874799185427
+    -- NOTE: Roblox ImageLabel does not support animated GIFs.
+    -- For animated logo, use a sprite-sheet with RunService in a future update.
     local badge = Instance.new("ImageLabel")
     badge.Size                   = UDim2.new(0, 32, 0, 32)
     badge.Position               = UDim2.new(0, 8, 0.5, -16)
     badge.BackgroundTransparency = 1
-    badge.Image                  = "rbxassetid://138296930859915"
+    badge.Image                  = "rbxassetid://109874799185427"
     badge.ScaleType              = Enum.ScaleType.Fit
     badge.ZIndex                 = 5
     badge.Parent                 = header
@@ -495,48 +496,57 @@ function ESLib:CreateWindow(config)
     end
 
     -- Mini bubble (shown when minimised)
+    -- Glow ring behind bubble
     local glowRing = newFrame({
         AnchorPoint            = Vector2.new(0.5, 0.5),
-        Position               = UDim2.new(1, -60, 1, -60),
-        Size                   = UDim2.new(0, 96, 0, 96),
+        Position               = UDim2.new(1, -100, 1, -100),
+        Size                   = UDim2.new(0, 84, 0, 84),
         BackgroundColor3       = T.accent,
-        BackgroundTransparency = 0.7,
+        BackgroundTransparency = 0.75,
         ZIndex                 = 19,
         Visible                = false,
         Parent                 = gui,
     })
-    corner(glowRing, 48)
+    corner(glowRing, 42)
 
+    -- Bubble frame
     local miniBubble = newFrame({
         AnchorPoint      = Vector2.new(0.5, 0.5),
-        Position         = UDim2.new(1, -60, 1, -60),
-        Size             = UDim2.new(0, 80, 0, 80),
+        Position         = UDim2.new(1, -100, 1, -100),
+        Size             = UDim2.new(0, 72, 0, 72),
         BackgroundColor3 = T.bg,
         ZIndex           = 20,
         Visible          = false,
         Parent           = gui,
     })
-    corner(miniBubble, 40)
-    stroke(miniBubble, T.accent, 2)
+    corner(miniBubble, 36)
 
+    -- UIStroke on bubble
+    local bubbleStroke = Instance.new("UIStroke")
+    bubbleStroke.Color           = T.accent
+    bubbleStroke.Thickness       = 2
+    bubbleStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    bubbleStroke.Parent          = miniBubble
+
+    -- ES Logo | Asset: rbxassetid://109874799185427
+    -- NOTE: Roblox ImageLabel does not support animated GIFs.
+    -- For animated logo, use a sprite-sheet with RunService in a future update.
     local bubbleImg = Instance.new("ImageLabel")
-    bubbleImg.Size                   = UDim2.new(0, 70, 0, 70)
-    bubbleImg.Position               = UDim2.new(0.5, -35, 0.5, -35)
+    bubbleImg.Size                   = UDim2.new(0, 56, 0, 56)
+    bubbleImg.Position               = UDim2.new(0.5, -28, 0.5, -28)
     bubbleImg.BackgroundTransparency = 1
-    bubbleImg.Image                  = "rbxassetid://138296930859915"
+    bubbleImg.Image                  = "rbxassetid://109874799185427"
     bubbleImg.ScaleType              = Enum.ScaleType.Fit
     bubbleImg.ZIndex                 = 21
     bubbleImg.Parent                 = miniBubble
 
-    -- Pulsing glow animation
-    task.spawn(function()
-        while glowRing.Parent do
-            tw(glowRing, { BackgroundTransparency = 0.85 }, 0.9, Enum.EasingStyle.Sine)
-            task.wait(0.95)
-            tw(glowRing, { BackgroundTransparency = 0.65 }, 0.9, Enum.EasingStyle.Sine)
-            task.wait(0.95)
-        end
-    end)
+    -- Pulsing glow animation (oscillates between 0.6 and 0.85)
+    local glowTween = TweenService:Create(
+        glowRing,
+        TweenInfo.new(1.2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true),
+        { BackgroundTransparency = 0.85 }
+    )
+    glowTween:Play()
 
     -- Minimize / Close
     local minimised = false
