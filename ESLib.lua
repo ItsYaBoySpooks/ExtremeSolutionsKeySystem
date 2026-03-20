@@ -30,22 +30,22 @@ local PlayerGui   = LocalPlayer:WaitForChild("PlayerGui")
 
 local T = {
     -- Backgrounds
-    bg          = Color3.fromRGB( 9,  9, 15),
-    sidebar     = Color3.fromRGB(13, 13, 21),
-    panel       = Color3.fromRGB(16, 16, 26),
-    card        = Color3.fromRGB(21, 21, 34),
-    cardHov     = Color3.fromRGB(26, 26, 42),
-    input       = Color3.fromRGB(11, 11, 19),
-    overlay     = Color3.fromRGB(12, 12, 20),
+    bg          = Color3.fromRGB( 9,  12,  9),
+    sidebar     = Color3.fromRGB(13,  17, 13),
+    panel       = Color3.fromRGB(16,  20, 16),
+    card        = Color3.fromRGB(21,  26, 21),
+    cardHov     = Color3.fromRGB(26,  32, 26),
+    input       = Color3.fromRGB(11,  14, 11),
+    overlay     = Color3.fromRGB(12,  15, 12),
 
     -- Accent
-    accent      = Color3.fromRGB( 98,  82, 255),
-    accentDark  = Color3.fromRGB( 65,  55, 185),
-    accentLight = Color3.fromRGB(128, 112, 255),
+    accent      = Color3.fromRGB( 98, 210,  60),
+    accentDark  = Color3.fromRGB( 65, 150,  35),
+    accentLight = Color3.fromRGB(140, 240,  90),
 
     -- Tab states
-    tabActive   = Color3.fromRGB(22, 20, 44),
-    tabHov      = Color3.fromRGB(17, 17, 30),
+    tabActive   = Color3.fromRGB(20,  36, 16),
+    tabHov      = Color3.fromRGB(17,  24, 14),
 
     -- Text
     textPri     = Color3.fromRGB(228, 228, 245),
@@ -58,12 +58,12 @@ local T = {
     warning     = Color3.fromRGB(238, 175,  42),
 
     -- Toggle
-    toggleOn    = Color3.fromRGB( 98,  82, 255),
-    toggleOff   = Color3.fromRGB( 36,  36,  58),
+    toggleOn    = Color3.fromRGB( 98, 210,  60),
+    toggleOff   = Color3.fromRGB( 36,  52,  32),
 
     -- Borders
-    border      = Color3.fromRGB( 34,  34,  54),
-    borderHov   = Color3.fromRGB( 52,  52,  80),
+    border      = Color3.fromRGB( 34,  54,  30),
+    borderHov   = Color3.fromRGB( 52,  80,  44),
 
     white       = Color3.fromRGB(255, 255, 255),
     black       = Color3.fromRGB(  0,   0,   0),
@@ -161,7 +161,7 @@ local function scrollFrame(parent, zindex)
     s.BackgroundTransparency = 1
     s.BorderSizePixel        = 0
     s.ScrollBarThickness     = 3
-    s.ScrollBarImageColor3   = T.border
+    s.ScrollBarImageColor3   = T.accent
     s.CanvasSize             = UDim2.new(0, 0, 0, 0)
     s.AutomaticCanvasSize    = Enum.AutomaticSize.Y
     s.ZIndex                 = zindex or 2
@@ -224,7 +224,7 @@ local function notify(title, content, ntype, duration)
         Parent           = notifHolder,
     })
     corner(card, 10)
-    stroke(card, T.border, 1)
+    stroke(card, T.border, 1.5)
 
     -- Left accent bar
     local bar = newFrame({ Size = UDim2.new(0, 3, 1, 0), BackgroundColor3 = col, Parent = card })
@@ -340,30 +340,34 @@ function ESLib:CreateWindow(config)
     })
 
     -- ES logo badge
-    local badge = newFrame({
-        Size             = UDim2.new(0, 26, 0, 26),
-        Position         = UDim2.new(0, 12, 0.5, -13),
-        BackgroundColor3 = T.accent,
-        ZIndex           = 5,
-        Parent           = header,
-    })
-    corner(badge, 7)
-    newLabel({
-        Size               = UDim2.new(1, 0, 1, 0),
-        Text               = "ES",
-        TextSize           = 11,
-        Font               = Enum.Font.GothamBold,
-        TextColor3         = T.white,
-        TextXAlignment     = Enum.TextXAlignment.Center,
-        TextYAlignment     = Enum.TextYAlignment.Center,
-        ZIndex             = 6,
-        Parent             = badge,
+    local badge = Instance.new("ImageLabel")
+    badge.Size             = UDim2.new(0, 32, 0, 32)
+    badge.Position         = UDim2.new(0, 10, 0.5, -16)
+    badge.BackgroundTransparency = 1
+    badge.Image            = ""   -- TODO: replace with uploaded Roblox asset ID for ES logo
+    -- TODO: For animated logo, use a sprite-sheet ImageLabel with RunService loop
+    -- Upload a 32×32 (or larger, power-of-2) PNG to Roblox as a Decal/Image asset,
+    -- then set Image = "rbxassetid://YOUR_ASSET_ID_HERE"
+    badge.ScaleType        = Enum.ScaleType.Fit
+    badge.ZIndex           = 5
+    badge.Parent           = header
+    -- Fallback text label visible when Image is empty
+    local badgeFallback = newLabel({
+        Size           = UDim2.new(1, 0, 1, 0),
+        Text           = "ES",
+        TextSize       = 11,
+        Font           = Enum.Font.GothamBold,
+        TextColor3     = T.accent,
+        TextXAlignment = Enum.TextXAlignment.Center,
+        TextYAlignment = Enum.TextYAlignment.Center,
+        ZIndex         = 6,
+        Parent         = badge,
     })
 
     -- Window title
     newLabel({
         Size           = UDim2.new(0, 240, 1, 0),
-        Position       = UDim2.new(0, 46, 0, 0),
+        Position       = UDim2.new(0, 50, 0, 0),
         Text           = config.Name or "Extreme Solutions",
         TextSize       = 14,
         Font           = Enum.Font.GothamBold,
@@ -439,7 +443,7 @@ function ESLib:CreateWindow(config)
         Text           = "Extreme Solutions",
         TextSize       = 10,
         Font           = Enum.Font.GothamBold,
-        TextColor3     = T.textDim,
+        TextColor3     = T.accent,
         TextXAlignment = Enum.TextXAlignment.Center,
         TextYAlignment = Enum.TextYAlignment.Center,
         ZIndex         = 5,
@@ -698,7 +702,8 @@ function ESLib:CreateWindow(config)
             newFrame({
                 Size             = UDim2.new(1, 0, 0, 1),
                 Position         = UDim2.new(0, 0, 1, -1),
-                BackgroundColor3 = T.border,
+                BackgroundColor3 = T.accent,
+                BackgroundTransparency = 0.6,
                 Parent           = sec,
             })
         end
