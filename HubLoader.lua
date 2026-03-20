@@ -289,29 +289,15 @@ headerBg.BorderSizePixel  = 0
 headerBg.ZIndex           = 2
 headerBg.Parent           = panel
 
--- ES badge (ImageLabel with "ES" text fallback, top-left of header)
+-- ES badge (ImageLabel with real logo asset)
 local esBadge = Instance.new("ImageLabel")
 esBadge.Size                   = UDim2.new(0, 36, 0, 36)
 esBadge.Position               = UDim2.new(0, 18, 0, 22)
 esBadge.BackgroundTransparency = 1
-esBadge.Image                  = ""   -- TODO: replace with uploaded Roblox asset ID for ES logo
--- TODO: For animated logo, use a sprite-sheet ImageLabel with RunService loop
--- Upload a 36×36 (or larger, power-of-2) PNG to Roblox as a Decal/Image asset,
--- then set Image = "rbxassetid://YOUR_ASSET_ID_HERE"
+esBadge.Image                  = "rbxassetid://138296930859915"
 esBadge.ScaleType              = Enum.ScaleType.Fit
 esBadge.ZIndex                 = 4
 esBadge.Parent                 = panel
-local esBadgeLbl = Instance.new("TextLabel")
-esBadgeLbl.Size                   = UDim2.new(1, 0, 1, 0)
-esBadgeLbl.BackgroundTransparency = 1
-esBadgeLbl.TextColor3             = COLORS.accent
-esBadgeLbl.TextSize               = 13
-esBadgeLbl.Font                   = Enum.Font.GothamBold
-esBadgeLbl.TextXAlignment         = Enum.TextXAlignment.Center
-esBadgeLbl.TextYAlignment         = Enum.TextYAlignment.Center
-esBadgeLbl.Text                   = "ES"
-esBadgeLbl.ZIndex                 = 5
-esBadgeLbl.Parent                 = esBadge
 
 -- Logo / title (shifted right of badge)
 local logoLabel = Instance.new("TextLabel")
