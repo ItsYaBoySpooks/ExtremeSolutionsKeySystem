@@ -82,7 +82,7 @@ S.PlayerESP        = false
 S.ChestESP         = false
 
 -- ESP Customisation (defaults)
-S.ESP_FruitColor   = Color3.fromRGB(255, 80, 80)
+S.ESP_FruitColor   = Color3.fromRGB(98, 210, 60)
 S.ESP_PlayerColor  = Color3.fromRGB(80, 200, 255)
 S.ESP_ChestColor   = Color3.fromRGB(255, 215, 0)
 S.ESP_TextSize     = 14
@@ -507,8 +507,15 @@ local function makeESPGui(adornee, text, color)
     frame.Parent                 = bb
 
     local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 6)
+    corner.CornerRadius = UDim.new(0, 8)
     corner.Parent       = frame
+
+    local espStroke = Instance.new("UIStroke")
+    -- Green border matching T.border from ESLib theme (34, 54, 30).
+    -- Note: T is local to ESLib.lua and not exported, so the value is mirrored here.
+    espStroke.Color     = Color3.fromRGB(34, 54, 30)
+    espStroke.Thickness = 1.5
+    espStroke.Parent    = frame
 
     local lbl = Instance.new("TextLabel")
     lbl.Size                   = UDim2.new(1, -6, 1, 0)

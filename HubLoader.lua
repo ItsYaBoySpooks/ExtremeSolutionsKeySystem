@@ -203,18 +203,18 @@ end
 -- ══════════════════════════════════════════════════════
 
 local COLORS = {
-    bg         = Color3.fromRGB(15, 15, 20),
-    panel      = Color3.fromRGB(22, 22, 30),
-    border     = Color3.fromRGB(60, 60, 90),
-    accent     = Color3.fromRGB(100, 80, 255),
-    accentHov  = Color3.fromRGB(120, 100, 255),
-    text       = Color3.fromRGB(220, 220, 235),
-    textDim    = Color3.fromRGB(130, 130, 155),
-    inputBg    = Color3.fromRGB(12, 12, 18),
-    success    = Color3.fromRGB(80, 210, 120),
+    bg         = Color3.fromRGB( 9, 12,  9),
+    panel      = Color3.fromRGB(16, 20, 16),
+    border     = Color3.fromRGB(34, 54, 30),
+    accent     = Color3.fromRGB(98,210, 60),
+    accentHov  = Color3.fromRGB(118,230, 75),
+    text       = Color3.fromRGB(220,220,235),
+    textDim    = Color3.fromRGB(130,130,155),
+    inputBg    = Color3.fromRGB(11, 14, 11),
+    success    = Color3.fromRGB(80, 210,120),
     error      = Color3.fromRGB(220, 80, 80),
-    warning    = Color3.fromRGB(255, 190, 50),
-    white      = Color3.fromRGB(255, 255, 255),
+    warning    = Color3.fromRGB(255,190, 50),
+    white      = Color3.fromRGB(255,255,255),
 }
 
 local function tween(obj, props, t, style, dir)
@@ -284,25 +284,28 @@ accentBar.Parent           = panel
 local headerBg = Instance.new("Frame")
 headerBg.Size             = UDim2.new(1, 0, 0, 78)
 headerBg.Position         = UDim2.new(0, 0, 0, 4)   -- sits just below accent bar
-headerBg.BackgroundColor3 = Color3.fromRGB(13, 13, 21)
+headerBg.BackgroundColor3 = Color3.fromRGB(12, 16, 12)
 headerBg.BorderSizePixel  = 0
 headerBg.ZIndex           = 2
 headerBg.Parent           = panel
 
--- ES badge (purple square with "ES" text, top-left of header)
-local esBadge = Instance.new("Frame")
-esBadge.Size             = UDim2.new(0, 28, 0, 28)
-esBadge.Position         = UDim2.new(0, 18, 0, 24)
-esBadge.BackgroundColor3 = COLORS.accent
-esBadge.BorderSizePixel  = 0
-esBadge.ZIndex           = 4
-esBadge.Parent           = panel
-makeCorner(esBadge, 7)
+-- ES badge (ImageLabel with "ES" text fallback, top-left of header)
+local esBadge = Instance.new("ImageLabel")
+esBadge.Size                   = UDim2.new(0, 36, 0, 36)
+esBadge.Position               = UDim2.new(0, 18, 0, 22)
+esBadge.BackgroundTransparency = 1
+esBadge.Image                  = ""   -- TODO: replace with uploaded Roblox asset ID for ES logo
+-- TODO: For animated logo, use a sprite-sheet ImageLabel with RunService loop
+-- Upload a 36×36 (or larger, power-of-2) PNG to Roblox as a Decal/Image asset,
+-- then set Image = "rbxassetid://YOUR_ASSET_ID_HERE"
+esBadge.ScaleType              = Enum.ScaleType.Fit
+esBadge.ZIndex                 = 4
+esBadge.Parent                 = panel
 local esBadgeLbl = Instance.new("TextLabel")
 esBadgeLbl.Size                   = UDim2.new(1, 0, 1, 0)
 esBadgeLbl.BackgroundTransparency = 1
-esBadgeLbl.TextColor3             = COLORS.white
-esBadgeLbl.TextSize               = 11
+esBadgeLbl.TextColor3             = COLORS.accent
+esBadgeLbl.TextSize               = 13
 esBadgeLbl.Font                   = Enum.Font.GothamBold
 esBadgeLbl.TextXAlignment         = Enum.TextXAlignment.Center
 esBadgeLbl.TextYAlignment         = Enum.TextYAlignment.Center
@@ -433,7 +436,7 @@ makeCorner(validateBtn, 8)
 local storeBtn = Instance.new("TextButton")
 storeBtn.Size             = UDim2.new(0, 185, 0, 30)
 storeBtn.Position         = UDim2.new(0, 20, 0, 308)
-storeBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 42)
+storeBtn.BackgroundColor3 = Color3.fromRGB(20, 28, 18)
 storeBtn.TextColor3       = COLORS.textDim
 storeBtn.TextSize         = 12
 storeBtn.Font             = Enum.Font.Gotham
@@ -448,7 +451,7 @@ makeStroke(storeBtn, COLORS.border, 1)
 local discordBtn = Instance.new("TextButton")
 discordBtn.Size             = UDim2.new(0, 185, 0, 30)
 discordBtn.Position         = UDim2.new(0, 215, 0, 308)
-discordBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 42)
+discordBtn.BackgroundColor3 = Color3.fromRGB(20, 28, 18)
 discordBtn.TextColor3       = COLORS.textDim
 discordBtn.TextSize         = 12
 discordBtn.Font             = Enum.Font.Gotham
@@ -463,7 +466,7 @@ makeStroke(discordBtn, COLORS.border, 1)
 local closeBtn = Instance.new("TextButton")
 closeBtn.Size             = UDim2.new(0, 28, 0, 28)
 closeBtn.Position         = UDim2.new(0, 374, 0, 27)
-closeBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 55)
+closeBtn.BackgroundColor3 = Color3.fromRGB(26, 36, 24)
 closeBtn.TextColor3       = COLORS.textDim
 closeBtn.TextSize         = 14
 closeBtn.Font             = Enum.Font.GothamBold
@@ -477,7 +480,7 @@ closeBtn.MouseEnter:Connect(function()
     tween(closeBtn, { BackgroundColor3 = Color3.fromRGB(200, 60, 60), TextColor3 = COLORS.white }, 0.15)
 end)
 closeBtn.MouseLeave:Connect(function()
-    tween(closeBtn, { BackgroundColor3 = Color3.fromRGB(40, 40, 55), TextColor3 = COLORS.textDim }, 0.15)
+    tween(closeBtn, { BackgroundColor3 = Color3.fromRGB(26, 36, 24), TextColor3 = COLORS.textDim }, 0.15)
 end)
 closeBtn.MouseButton1Click:Connect(function()
     tween(panel,   { BackgroundTransparency = 1 }, 0.2)
@@ -548,7 +551,7 @@ if detectedGameName then
 else
     gameLabel.TextColor3 = COLORS.warning
     gameLabel.Text       = "Game not supported (PlaceId: " .. tostring(game.PlaceId) .. ")"
-    validateBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
+    validateBtn.BackgroundColor3 = Color3.fromRGB(30, 46, 26)
     validateBtn.Text             = "Unsupported Game"
     validateBtn.Active           = false
 end
@@ -615,7 +618,7 @@ local function onValidate()
 
     isValidating = true
     validateBtn.Text             = "Validating..."
-    validateBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
+    validateBtn.BackgroundColor3 = Color3.fromRGB(40, 68, 28)
     statusLabel.TextColor3       = COLORS.textDim
     statusLabel.Text             = "Checking key with server..."
 
@@ -673,7 +676,7 @@ end)
 
 -- Input stroke highlight on focus
 inputBox.Focused:Connect(function()
-    tween(inputBox, { BackgroundColor3 = Color3.fromRGB(18, 18, 26) }, 0.15)
+    tween(inputBox, { BackgroundColor3 = Color3.fromRGB(14, 20, 12) }, 0.15)
     for _, s in ipairs(inputBox:GetChildren()) do
         if s:IsA("UIStroke") then
             tween(s, { Color = COLORS.accent }, 0.15)
