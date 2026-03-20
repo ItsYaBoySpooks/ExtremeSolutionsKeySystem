@@ -476,20 +476,85 @@ function ESLib:CreateWindow(config)
         end)
     end
 
+    -- Mini bubble (shown when minimised)
+    local glowRing = newFrame({
+        AnchorPoint            = Vector2.new(0.5, 0.5),
+        Position               = UDim2.new(1, -60, 1, -60),
+        Size                   = UDim2.new(0, 96, 0, 96),
+        BackgroundColor3       = T.accent,
+        BackgroundTransparency = 0.7,
+        ZIndex                 = 19,
+        Visible                = false,
+        Parent                 = gui,
+    })
+    corner(glowRing, 48)
+
+    local miniBubble = newFrame({
+        AnchorPoint      = Vector2.new(0.5, 0.5),
+        Position         = UDim2.new(1, -60, 1, -60),
+        Size             = UDim2.new(0, 80, 0, 80),
+        BackgroundColor3 = T.bg,
+        ZIndex           = 20,
+        Visible          = false,
+        Parent           = gui,
+    })
+    corner(miniBubble, 40)
+    stroke(miniBubble, T.accent, 2)
+
+    local bubbleImg = Instance.new("ImageLabel")
+    bubbleImg.Size                   = UDim2.new(0, 70, 0, 70)
+    bubbleImg.Position               = UDim2.new(0.5, -35, 0.5, -35)
+    bubbleImg.BackgroundTransparency = 1
+    bubbleImg.Image                  = "rbxassetid://138296930859915"
+    bubbleImg.ScaleType              = Enum.ScaleType.Fit
+    bubbleImg.ZIndex                 = 21
+    bubbleImg.Parent                 = miniBubble
+
+    -- Pulsing glow animation
+    task.spawn(function()
+        while glowRing.Parent do
+            tw(glowRing, { BackgroundTransparency = 0.85 }, 0.9, Enum.EasingStyle.Sine)
+            task.wait(0.95)
+            tw(glowRing, { BackgroundTransparency = 0.65 }, 0.9, Enum.EasingStyle.Sine)
+            task.wait(0.95)
+        end
+    end)
+
     -- Minimize / Close
     local minimised = false
+
+    local function restoreWindow()
+        minimised             = false
+        miniBubble.Visible    = false
+        glowRing.Visible      = false
+        win.Visible           = true
+        shadow.Visible        = true
+        borderOverlay.Visible = true
+        minBtn.Text           = "-"
+        win.Size           = UDim2.new(0, WIN_W, 0, 0)
+        shadow.Size        = UDim2.new(0, WIN_W + 14, 0, 0)
+        borderOverlay.Size = UDim2.new(0, WIN_W, 0, 0)
+        tw(win,           { Size = UDim2.new(0, WIN_W, 0, WIN_H) }, 0.4, Enum.EasingStyle.Back)
+        tw(shadow,        { Size = UDim2.new(0, WIN_W + 14, 0, WIN_H + 14) }, 0.4, Enum.EasingStyle.Back)
+        tw(borderOverlay, { Size = UDim2.new(0, WIN_W, 0, WIN_H) }, 0.4, Enum.EasingStyle.Back)
+    end
+
     minBtn.MouseButton1Click:Connect(function()
         minimised = not minimised
         if minimised then
-            tw(win,           { Size = UDim2.new(0, WIN_W, 0, HEADER_H) }, 0.3)
-            tw(shadow,        { Size = UDim2.new(0, WIN_W + 14, 0, HEADER_H + 14) }, 0.3)
-            tw(borderOverlay, { Size = UDim2.new(0, WIN_W, 0, HEADER_H) }, 0.3)
-            minBtn.Text = "+"
+            win.Visible           = false
+            shadow.Visible        = false
+            borderOverlay.Visible = false
+            miniBubble.Visible    = true
+            glowRing.Visible      = true
+            minBtn.Text           = "+"
         else
-            tw(win,           { Size = UDim2.new(0, WIN_W, 0, WIN_H) }, 0.3, Enum.EasingStyle.Back)
-            tw(shadow,        { Size = UDim2.new(0, WIN_W + 14, 0, WIN_H + 14) }, 0.3, Enum.EasingStyle.Back)
-            tw(borderOverlay, { Size = UDim2.new(0, WIN_W, 0, WIN_H) }, 0.3, Enum.EasingStyle.Back)
-            minBtn.Text = "-"
+            restoreWindow()
+        end
+    end)
+    miniBubble.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            restoreWindow()
         end
     end)
     closeBtn.MouseButton1Click:Connect(function()
@@ -508,8 +573,11 @@ function ESLib:CreateWindow(config)
             if gameProcessed then return end
             local k = tostring(input.KeyCode):gsub("Enum.KeyCode.", "")
             if k == keyStr then
-                win.Visible    = not win.Visible
-                shadow.Visible = win.Visible
+                if not minimised then
+                    win.Visible    = not win.Visible
+                    shadow.Visible = win.Visible
+                    borderOverlay.Visible = win.Visible
+                end
             end
         end)
     end
