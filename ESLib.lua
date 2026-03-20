@@ -1,3 +1,21 @@
-    badge.Image            = "rbxassetid://138296930859915"  -- TODO: For animated logo, use a sprite-sheet ImageLabel with RunService loop
-    
-    badgeFallback.Visible = false
+-- ██████████████████████████████████████████████████████
+--           Extreme Solutions  |  ES-UI Library
+--                       v1.1
+--      Custom UI framework for all ES Hub scripts
+-- ██████████████████████████████████████████████████████
+
+-- ══════════════════════════════════════════════════════
+--  MODULE
+-- ══════════════════════════════════════════════════════
+
+local ESLib = {}
+ESLib.__index = ESLib
+
+-- ══════════════════════════════════════════════════════
+--  SERVICES
+-- ══════════════════════════════════════════════════════
+
+local Players      = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local UIS          = game:GetService("UserInputService")
+l...
