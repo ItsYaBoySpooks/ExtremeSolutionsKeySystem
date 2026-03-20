@@ -203,19 +203,19 @@ end
 -- ══════════════════════════════════════════════════════
 
 local COLORS = {
-    bg         = Color3.fromRGB( 8, 12,  8),
-    panel      = Color3.fromRGB(16, 20, 16),
-    border     = Color3.fromRGB(40, 70, 40),
-    accent     = Color3.fromRGB(98,210, 60),
-    accentHov  = Color3.fromRGB(118,230, 75),
-    text       = Color3.fromRGB(220,220,235),
-    textDim    = Color3.fromRGB(130,130,155),
-    inputBg    = Color3.fromRGB(11, 14, 11),
-    sidebar    = Color3.fromRGB(11, 16, 11),
-    success    = Color3.fromRGB(80, 210,120),
-    error      = Color3.fromRGB(220, 80, 80),
-    warning    = Color3.fromRGB(255,190, 50),
-    white      = Color3.fromRGB(255,255,255),
+    bg         = Color3.fromRGB(  8,  12,   8),
+    panel      = Color3.fromRGB( 14,  20,  14),
+    border     = Color3.fromRGB( 40,  70,  40),
+    accent     = Color3.fromRGB( 98, 210,  60),
+    accentHov  = Color3.fromRGB(118, 230,  75),
+    text       = Color3.fromRGB(228, 242, 228),
+    textDim    = Color3.fromRGB( 70, 100,  70),
+    inputBg    = Color3.fromRGB( 10,  15,  10),
+    sidebar    = Color3.fromRGB( 11,  16,  11),
+    success    = Color3.fromRGB( 70, 200, 108),
+    error      = Color3.fromRGB(210,  65,  65),
+    warning    = Color3.fromRGB(238, 175,  42),
+    white      = Color3.fromRGB(255, 255, 255),
 }
 
 local function tween(obj, props, t, style, dir)
@@ -307,13 +307,14 @@ headerBg.ZIndex           = 2
 headerBg.Parent           = panel
 
 -- ES badge (ImageLabel with real logo asset)
--- NOTE: GIFs cannot be used directly in Roblox ImageLabels; the static asset below is used instead.
--- For animated logo support in future, a spritesheet + RunService loop approach would be needed.
+-- ES Logo | Asset: rbxassetid://109874799185427
+-- NOTE: Roblox ImageLabel does not support animated GIFs.
+-- For animated logo, use a sprite-sheet with RunService in a future update.
 local esBadge = Instance.new("ImageLabel")
 esBadge.Size                   = UDim2.new(0, 36, 0, 36)
 esBadge.Position               = UDim2.new(0, 18, 0, 22)
 esBadge.BackgroundTransparency = 1
-esBadge.Image                  = "rbxassetid://138296930859915"
+esBadge.Image                  = "rbxassetid://109874799185427"
 esBadge.ScaleType              = Enum.ScaleType.Fit
 esBadge.ZIndex                 = 4
 esBadge.Parent                 = panel
